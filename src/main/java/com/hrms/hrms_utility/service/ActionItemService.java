@@ -7,6 +7,7 @@ import com.hrms.hrms_utility.utility.ActionItemHelper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.relation.RoleNotFoundException;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class ActionItemService {
 
     @Autowired

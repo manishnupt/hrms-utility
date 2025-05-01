@@ -2,9 +2,12 @@ package com.hrms.hrms_utility.repository;
 
 import com.hrms.hrms_utility.entity.ActionItem;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
+@Repository
 public interface ActionItemRepo extends JpaRepository<ActionItem,Long> {
 
     List<ActionItem> findByAssigneeUserId(String assigneeUserId);
