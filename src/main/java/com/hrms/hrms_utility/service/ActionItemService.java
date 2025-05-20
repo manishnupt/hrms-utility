@@ -27,11 +27,17 @@ public class ActionItemService {
     }
 
     public List<ActionItem> getAssignedItems(String userId, ActionItem.ActionStatus status) {
-        return actionItemRepo.findByAssigneeUserIdAndStatus(userId,status);
+        if(status!=null)
+            return actionItemRepo.findByAssigneeUserIdAndStatus(userId,status);
+        else
+            return  actionItemRepo.findByAssigneeUserId(userId);
     }
 
     public List<ActionItem> getInitiatedItems(String userId, ActionItem.ActionStatus status) {
-        return actionItemRepo.findByInitiatorUserIdAndStatus(userId,status);
+        if(status!=null)
+            return actionItemRepo.findByInitiatorUserIdAndStatus(userId,status);
+        else
+            return actionItemRepo.findByInitiatorUserId(userId);
     }
 
     public ActionItem getActionItemById(Long id) {
