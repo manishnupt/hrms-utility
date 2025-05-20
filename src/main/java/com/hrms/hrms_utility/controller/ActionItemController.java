@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/employee")
+@RequestMapping("/action-item")
 @CrossOrigin(origins ="*")
 public class ActionItemController {
 
