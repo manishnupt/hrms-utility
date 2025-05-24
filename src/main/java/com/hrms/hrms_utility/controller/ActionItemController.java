@@ -2,6 +2,7 @@ package com.hrms.hrms_utility.controller;
 
 import com.hrms.hrms_utility.entity.ActionItem;
 import com.hrms.hrms_utility.request.ActionItemRequest;
+import com.hrms.hrms_utility.response.ActionItemResponse;
 import com.hrms.hrms_utility.service.ActionItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class ActionItemController {
     }
 
     @GetMapping("/assignee/{userId}")
-    public ResponseEntity<List<ActionItem>> getAssignedItems(
+    public ResponseEntity<List<ActionItemResponse>> getAssignedItems(
             @PathVariable String userId,
             @RequestParam(required = false) ActionItem.ActionStatus status
     ) {
@@ -34,7 +35,7 @@ public class ActionItemController {
 
     // 3. Get action items initiated by employee
     @GetMapping("/initiator/{userId}")
-    public ResponseEntity<List<ActionItem>> getInitiatedItems(
+    public ResponseEntity<List<ActionItemResponse>> getInitiatedItems(
             @PathVariable String userId,
             @RequestParam(required = false) ActionItem.ActionStatus status
     ) {
