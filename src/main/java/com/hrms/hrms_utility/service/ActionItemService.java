@@ -4,12 +4,18 @@ import com.hrms.hrms_utility.entity.ActionItem;
 import com.hrms.hrms_utility.repository.ActionItemRepo;
 import com.hrms.hrms_utility.request.ActionItemRequest;
 import com.hrms.hrms_utility.response.ActionItemResponse;
+import com.hrms.hrms_utility.response.BaseDto;
+import com.hrms.hrms_utility.response.EmployeeDto;
+import com.hrms.hrms_utility.response.LeaveDto;
+import com.hrms.hrms_utility.response.TimesheetDto;
 import com.hrms.hrms_utility.utility.ActionItemHelper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -107,28 +113,36 @@ public class ActionItemService {
         return actionItemRepo.findByReferenceIdAndStatus(referenceId, status);
     }
 
-    public Object callExternalService(String type, String userId) {
+    public EmployeeDto callExternalService(String type, String userId) {
         String url = externalServiceUrl + "/";
-        if(type.equals("employee")) {
+        if (type.equals("employee")) {
             url += "employee/";
         }
-        return restTemplate.getForEntity(url + userId, Object.class).getBody();
+        return restTemplate.getForEntity(url + userId, EmployeeDto.class).getBody();
     }
 
-    public Object callExternalService(String type, String userId,Long referenceId) {
-        String url = externalServiceUrl + "/employees/"+userId+"/";
-        if(type.equals("LEAVE")) {
-            url += "leave-tracker/"+ referenceId;
-        } else if(type.equals("TIMESHEET")) {
-            url += "timesheets/"+ referenceId;
-        } else if(type.equals("WFH")) {
-            url += "wfh/"+ referenceId;
-        } else if(type.equals("EXPENSE")) {
-            url += "expense/"+ referenceId;
-        } else if(type.equals("ASSET_REQUEST")) {
-            url += "asset_request/" + referenceId;
-        } 
-        return restTemplate.getForEntity(url, Object.class).getBody();
+    public BaseDto callExternalService(String type, String userId, Long referenceId) {
+        String url = externalServiceUrl + "/employees/" + userId + "/";
+        Class<? extends BaseDto> responseType;
+        if (type.equals("LEAVE")) {
+            url += "leave-tracker/" + referenceId;
+            responseType = LeaveDto.class;
+        } else if (type.equals("TIMESHEET")) {
+            url += "timesheets/" + referenceId;
+            responseType = TimesheetDto.class;
+        }
+        // else if(type.equals("WFH")) {
+        // url += "wfh/"+ referenceId;
+        // }
+        // else if(type.equals("EXPENSE")) {
+        // url += "expense/"+ referenceId;
+        // } else if(type.equals("ASSET_REQUEST")) {
+        // url += "asset_request/" + referenceId;
+        // }
+        else {
+            responseType = BaseDto.class;
+        }
+        return restTemplate.getForEntity(url, responseType).getBody();
     }
 
     private List<ActionItemResponse> mapToResponse(List<ActionItem> actionItems) {
@@ -146,7 +160,8 @@ public class ActionItemService {
                         .assigneeUser(
                                 callExternalService("employee", item.getAssigneeUserId()))
                         .reference(
-                                callExternalService(item.getType().toString(),item.getAssigneeUserId(), item.getReferenceId()))
+                                callExternalService(item.getType().toString(), item.getAssigneeUserId(),
+                                        item.getReferenceId()))
                         .createdAt(item.getCreatedAt())
                         .updatedAt(item.getUpdatedAt())
                         .build())

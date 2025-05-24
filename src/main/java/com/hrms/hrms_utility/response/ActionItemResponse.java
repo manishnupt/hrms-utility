@@ -2,8 +2,6 @@ package com.hrms.hrms_utility.response;
 
 
 import java.time.LocalDateTime;
-
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,9 +16,9 @@ public class ActionItemResponse {
     private boolean seen;
     private String type;
     private String status;
-    private Object initiatorUser;
-    private Object assigneeUser;
-    private Object reference;
+    private EmployeeDto initiatorUser;
+    private EmployeeDto assigneeUser;
+    private BaseDto reference;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
