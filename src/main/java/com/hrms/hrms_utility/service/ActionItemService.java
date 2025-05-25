@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +28,8 @@ public class ActionItemService {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${external.service.url}")
-    private String externalServiceUrl;
+    @Value("${employee.service.url}")
+    private String employeeServiceUrl;
 
     public ActionItem createActionItem(ActionItemRequest req) {
         ActionItem actionItem= ActionItemHelper.toEntity(req);
@@ -114,7 +113,7 @@ public class ActionItemService {
     }
 
     public EmployeeDto callExternalService(String type, String userId) {
-        String url = externalServiceUrl + "/";
+        String url = employeeServiceUrl + "/";
         if (type.equals("employee")) {
             url += "employee/";
         }
@@ -122,7 +121,7 @@ public class ActionItemService {
     }
 
     public BaseDto callExternalService(String type, String userId, Long referenceId) {
-        String url = externalServiceUrl + "/employees/" + userId + "/";
+        String url = employeeServiceUrl + "/employees/" + userId + "/";
         Class<? extends BaseDto> responseType;
         if (type.equals("LEAVE")) {
             url += "leave-tracker/" + referenceId;
