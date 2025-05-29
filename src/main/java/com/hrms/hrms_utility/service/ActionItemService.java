@@ -125,7 +125,7 @@ public class ActionItemService {
 
         // Set headers
         HttpHeaders headers = new HttpHeaders();
-        headers.set("x-tenant-id", TenantContext.getCurrentTenant());
+        headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
 
         // Create the request entity
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -144,26 +144,44 @@ public class ActionItemService {
     public BaseDto callExternalService(String type, String userId, Long referenceId) {
         String url = employeeServiceUrl + "/employees/" + userId + "/";
         Class<? extends BaseDto> responseType;
-        if (type.equals("LEAVE")) {
+
+        if ("LEAVE".equals(type)) {
             url += "leave-tracker/" + referenceId;
             responseType = LeaveDto.class;
-        } else if (type.equals("TIMESHEET")) {
+        } else if ("TIMESHEET".equals(type)) {
             url += "timesheets/" + referenceId;
             responseType = TimesheetDto.class;
         }
-        // else if(type.equals("WFH")) {
-        // url += "wfh/"+ referenceId;
-        // }
-        // else if(type.equals("EXPENSE")) {
-        // url += "expense/"+ referenceId;
-        // } else if(type.equals("ASSET_REQUEST")) {
-        // url += "asset_request/" + referenceId;
+        // Uncomment these if needed
+        // else if ("WFH".equals(type)) {
+        //     url += "wfh/" + referenceId;
+        //     responseType = WfhDto.class;
+        // } else if ("EXPENSE".equals(type)) {
+        //     url += "expense/" + referenceId;
+        //     responseType = ExpenseDto.class;
+        // } else if ("ASSET_REQUEST".equals(type)) {
+        //     url += "asset_request/" + referenceId;
+        //     responseType = AssetRequestDto.class;
         // }
         else {
             responseType = BaseDto.class;
         }
-        return restTemplate.getForEntity(url, responseType).getBody();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<? extends BaseDto> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                responseType
+        );
+
+        return response.getBody();
     }
+
 
     private List<ActionItemResponse> mapToResponse(List<ActionItem> actionItems) {
         return actionItems.stream()
