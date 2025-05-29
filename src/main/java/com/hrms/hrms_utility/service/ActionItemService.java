@@ -9,9 +9,14 @@ import com.hrms.hrms_utility.response.EmployeeDto;
 import com.hrms.hrms_utility.response.LeaveDto;
 import com.hrms.hrms_utility.response.TimesheetDto;
 import com.hrms.hrms_utility.utility.ActionItemHelper;
+import com.hrms.hrms_utility.utility.TenantContext;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -114,10 +119,26 @@ public class ActionItemService {
 
     public EmployeeDto callExternalService(String type, String userId) {
         String url = employeeServiceUrl + "/";
-        if (type.equals("employee")) {
+        if ("employee".equals(type)) {
             url += "employee/";
         }
-        return restTemplate.getForEntity(url + userId, EmployeeDto.class).getBody();
+
+        // Set headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-tenant-id", TenantContext.getCurrentTenant());
+
+        // Create the request entity
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        // Make the HTTP GET request with headers
+        ResponseEntity<EmployeeDto> response = restTemplate.exchange(
+                url + userId,
+                HttpMethod.GET,
+                entity,
+                EmployeeDto.class
+        );
+
+        return response.getBody();
     }
 
     public BaseDto callExternalService(String type, String userId, Long referenceId) {
