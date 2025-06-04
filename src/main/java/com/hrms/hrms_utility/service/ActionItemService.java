@@ -11,6 +11,7 @@ import com.hrms.hrms_utility.response.TimesheetDto;
 import com.hrms.hrms_utility.utility.ActionItemHelper;
 import com.hrms.hrms_utility.utility.TenantContext;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Log4j2
 public class ActionItemService {
 
     @Autowired
@@ -142,6 +144,7 @@ public class ActionItemService {
     }
 
     public BaseDto callExternalService(String type, String userId, Long referenceId) {
+        log.info("calling external service for type :{}",type);
         String url = employeeServiceUrl + "/employees/" + userId + "/";
         Class<? extends BaseDto> responseType;
 
