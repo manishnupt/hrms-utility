@@ -78,6 +78,32 @@ public class ActionItemService {
     public ActionItem updateStatus(Long id, ActionItem.ActionStatus status, String remarks) {
         ActionItem item = actionItemRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ActionItem not found with id " + id));
+
+        String url = employeeServiceUrl + "/employee";
+        // Set headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
+
+        // Create the request entity
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<?> response = null;
+        if (item.getType().equals(ActionItem.ActionType.LEAVE)) {
+            url+="/leave-balance/";
+            response = restTemplate.postForEntity(
+                    url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
+                    entity,
+                    Object.class);
+        } else if (item.getType().equals(ActionItem.ActionType.WFH)) {
+            url+="/wfh-balance/";
+            response = restTemplate.postForEntity(
+                    url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
+                    entity,
+                    Object.class);
+
+        }
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("Failed to deduct item with id: {}", id);
+        }
         item.setStatus(status);
         item.setRemarks(remarks);
         item.setUpdatedAt(LocalDateTime.now());
