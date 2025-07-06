@@ -92,13 +92,13 @@ public class ActionItemService {
             response = restTemplate.postForEntity(
                     url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
                     entity,
-                    Object.class);
+                    String.class);
         } else if (item.getType().equals(ActionItem.ActionType.WFH)) {
             url+="/wfh-balance/";
             response = restTemplate.postForEntity(
                     url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
                     entity,
-                    Object.class);
+                    String.class);
 
         }
         if (!response.getStatusCode().is2xxSuccessful()) {
