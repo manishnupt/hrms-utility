@@ -1,0 +1,61 @@
+global: {}
+fullnameOverride: ""
+ServiceAccount:
+  automountServiceAccountToken: true
+  name: meta
+Deployment:
+  name: meta
+  annotations:
+    instrumentation.opentelemetry.io/inject-java: "trace/default"
+    vault.security.banzaicloud.io/vault-addr: https://vault.secret-manager.svc.cluster.local:8200
+    vault.security.banzaicloud.io/vault-role: vault_access
+    vault.security.banzaicloud.io/vault-skip-verify: "true"
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  containers:
+    meta:
+      image:
+        registry: "973991485835.dkr.ecr.us-east-1.amazonaws.com"
+        repository: "mynx-use1-prod-meta-ecr"
+        tag: "v1.0.5"
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8086
+          protocol: TCP
+          name: http
+      resources:
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+      env:
+        POSTGRES_USER: vault:namespaced/data/meta/meta#POSTGRES_USER
+        POSTGRES_PASSWORD: vault:namespaced/data/meta/meta#POSTGRES_PASSWORD
+        SPRING_PROFILES_ACTIVE: prod
+        SPRING_DATASOURCE_URL: vault:namespaced/data/meta/meta#SPRING_DATASOURCE_URL
+        SPRING_DATASOURCE_USERNAME: vault:namespaced/data/meta/meta#SPRING_DATASOURCE_USERNAME
+        SPRING_DATASOURCE_PASSWORD: vault:namespaced/data/meta/meta#SPRING_DATASOURCE_PASSWORD
+        SPRING_JPA_HIBERNATE_DDL_AUTO: update
+        AUTH_FEATUERS_ENABLED: "false"
+        REDIS_HOST: vault:namespaced/data/meta/meta#REDIS_HOST
+        REDIS_PASSWORD: vault:namespaced/data/meta/meta#REDIS_PASSWORD
+        DB_HOST: vault:namespaced/data/meta/meta#DB_HOST
+        BASE_URL: vault:namespaced/data/meta/meta#BASE_URL
+        TENANT_DB_CONFIG_URL: vault:namespaced/data/meta/meta#
+        CPT_CSV_FILE_PATH: vault:namespaced/data/meta/meta#CPT_CSV_FILE_PATH
+        LABS_CSV_FILE_PATH: vault:namespaced/data/meta/meta#LABS_CSV_FILE_PATH
+        IMAGING_CSV_FILE_PATH: vault:namespaced/data/meta/meta#IMAGING_CSV_FILE_PATH
+        IDENTITY_BASE_URL: vault:namespaced/data/meta/meta#IDENTITY_BASE_URL
+Service:
+  meta:
+    name: meta
+    ports:
+      - port: 80
+        targetPort: 8086
+    sessionAffinity: None

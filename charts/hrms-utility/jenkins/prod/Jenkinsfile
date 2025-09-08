@@ -1,0 +1,5 @@
+@Library(value="ci@master", changelog=false) _
+helm([
+    repositoryUrl: "https://chartmuseum.mgmt.stage.pp.hrms.work/",
+    directoryPath: "charts/meta/"
+])

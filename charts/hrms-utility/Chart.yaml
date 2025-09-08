@@ -1,0 +1,10 @@
+apiVersion: v2
+appVersion: v1.0.0
+description: A Helm chart for Kubernetes
+name: hrms-utility
+type: application
+version: v1.0.0
+dependencies:
+  - name: common-chart
+    version: 1.0.0
+    repository: "@chartrepo"

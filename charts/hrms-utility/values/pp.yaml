@@ -1,0 +1,49 @@
+global: {}
+fullnameOverride: ""
+ServiceAccount:
+  automountServiceAccountToken: true
+  name: hrms-utility
+Deployment:
+  name: hrms-utility
+  annotations:
+    instrumentation.opentelemetry.io/inject-java: "trace/default"
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  containers:
+    hrms-utility:
+      image:
+        registry: "742428948447.dkr.ecr.ap-south-1.amazonaws.com"
+        repository: "mynx-use1-hrms-stage-hrms-utility-ecr"
+        tag: "v1.0.0"
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 9099
+          protocol: TCP
+          name: http
+      resources:
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+      env:
+        SPRING_PROFILES_ACTIVE: "prod"
+        SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/hrms_utility"
+        SPRING_DATASOURCE_USERNAME: "postgres"
+        SPRING_DATASOURCE_PASSWORD: "admin"
+        SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+        DEFAULT_TENANT: "tomato"
+        TENANT_CONFIG_API_URL: "https://tenant.dev.hrms.work/api/v1/tenants/databases"
+        TENANT_MANAGEMENT: "https://tenant.dev.hrms.work"
+Service:
+  hrms-utility:
+    name: hrms-utility
+    ports:
+      - port: 80
+        targetPort: 9099
+    sessionAffinity: None
