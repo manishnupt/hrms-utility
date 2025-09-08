@@ -4,6 +4,7 @@ import com.hrms.hrms_utility.entity.ActionItem;
 import com.hrms.hrms_utility.repository.ActionItemRepo;
 import com.hrms.hrms_utility.request.ActionItemRequest;
 import com.hrms.hrms_utility.response.ActionItemResponse;
+import com.hrms.hrms_utility.response.ApiResponse;
 import com.hrms.hrms_utility.response.BaseDto;
 import com.hrms.hrms_utility.response.EmployeeDto;
 import com.hrms.hrms_utility.response.LeaveDto;
@@ -39,7 +40,7 @@ public class ActionItemService {
     private String employeeServiceUrl;
 
     public ActionItem createActionItem(ActionItemRequest req) {
-        ActionItem actionItem= ActionItemHelper.toEntity(req);
+        ActionItem actionItem = ActionItemHelper.toEntity(req);
         return actionItemRepo.save(actionItem);
     }
 
@@ -75,9 +76,18 @@ public class ActionItemService {
         }
     }
 
-    public ActionItem updateStatus(Long id, ActionItem.ActionStatus status, String remarks) {
+    public ApiResponse updateStatus(Long id, ActionItem.ActionStatus status, String remarks) {
         ActionItem item = actionItemRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ActionItem not found with id " + id));
+
+        if(item.getStatus() == status){
+            ApiResponse response = new ApiResponse();
+            response.setSuccess(false);
+            response.setMessage("Action item already processed");
+            return response;
+        }
+    
+        ApiResponse actionItemResponse = new ApiResponse();
 
         String url = employeeServiceUrl + "/employee";
         // Set headers
@@ -87,6 +97,32 @@ public class ActionItemService {
         // Create the request entity
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<?> response = null;
+
+        response = restTemplate.getForEntity(url + "/" + item.getAssigneeUserId(), EmployeeDto.class);
+
+        if (response == null || !response.getStatusCode().is2xxSuccessful()) {
+            log.error("Failed to fetch employee details for userId: {}", item.getAssigneeUserId());
+            actionItemResponse.setSuccess(false);
+            actionItemResponse.setMessage("Failed to fetch employee details");
+            return actionItemResponse;
+        }
+
+        EmployeeDto employee = (EmployeeDto) response.getBody();
+        if (employee == null) {
+            log.error("Employee details are null for userId: {}", item.getAssigneeUserId());
+            actionItemResponse.setSuccess(false);
+            actionItemResponse.setMessage("Employee details are null");
+            return actionItemResponse;
+
+        }
+        if (!employee.getAssignedManagerId().equals(item.getInitiatorUserId())) {
+            log.error("Initiator is not the assigned manager for userId: {}", item.getAssigneeUserId());
+            actionItemResponse.setSuccess(false);
+            actionItemResponse.setMessage("Initiator is not the assigned manager");
+            return actionItemResponse;
+
+        }
+
         if (item.getType().equals(ActionItem.ActionType.LEAVE)) {
             url+="/leave-balance/";
             response = restTemplate.postForEntity(
@@ -104,10 +140,17 @@ public class ActionItemService {
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("Failed to deduct item with id: {}", id);
         }
+
         item.setStatus(status);
         item.setRemarks(remarks);
         item.setUpdatedAt(LocalDateTime.now());
-        return actionItemRepo.save(item);
+        actionItemRepo.save(item);
+        actionItemResponse.setSuccess(true);
+        actionItemResponse.setMessage("Action item status updated successfully");
+        ActionItemResponse res= ActionItemHelper.convertToResponse(item);
+        res.setSuccess(true);
+        res.setMessage("Action item status updated successfully");
+        return res;
     }
 
     public void markAsSeen(Long id) {
