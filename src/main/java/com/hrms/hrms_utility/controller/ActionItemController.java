@@ -3,6 +3,7 @@ package com.hrms.hrms_utility.controller;
 import com.hrms.hrms_utility.entity.ActionItem;
 import com.hrms.hrms_utility.request.ActionItemRequest;
 import com.hrms.hrms_utility.response.ActionItemResponse;
+import com.hrms.hrms_utility.response.ApiResponse;
 import com.hrms.hrms_utility.service.ActionItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,7 @@ public class ActionItemController {
 
     // 5. Approve or Reject an action item
     @PutMapping("/{id}/status")
-    public ResponseEntity<ActionItem> updateActionItemStatus(
+    public ResponseEntity<ApiResponse> updateActionItemStatus(
             @PathVariable Long id,
             @RequestParam ActionItem.ActionStatus status,
             @RequestParam(required = false) String remarks
