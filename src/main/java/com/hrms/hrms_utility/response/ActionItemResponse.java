@@ -4,10 +4,12 @@ package com.hrms.hrms_utility.response;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Builder
-public class ActionItemResponse {
+@EqualsAndHashCode(callSuper = true) 
+public class ActionItemResponse extends ApiResponse {
 
     private Long id;
     private String title;
