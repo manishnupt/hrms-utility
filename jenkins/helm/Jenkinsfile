@@ -1,9 +1,0 @@
-@Library(value="ci@master", changelog=false) _
-
-helm_generic([
-    directoryPath: "charts/tenant-mgmt",
-    imageName: "mynx-use1-pp-tenant-ecr",
-    app: "tenant-mgmt",
-    prefix: "mynx-use1",
-    image_tag_helm_path: ".Deployment.containers.tenant.image.tag"
-])
