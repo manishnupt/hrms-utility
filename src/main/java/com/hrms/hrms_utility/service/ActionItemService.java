@@ -178,7 +178,9 @@ public class ActionItemService {
             responseType = TimesheetDto.class;
         }
          else if ("WFH".equals(type)) {
+             log.info("calling WFH service for referenceId :{}",referenceId);
             url += "/wfh/" + referenceId;
+            log.info("constructed url :{}",url);
             responseType = WorkFromHomeDto.class;
          }
          //else if ("EXPENSE".equals(type)) {
@@ -223,7 +225,7 @@ public class ActionItemService {
                         .assigneeUser(
                                 callExternalService("employee", item.getAssigneeUserId()))
                         .reference(
-                                callExternalService(item.getType().toString(), item.getAssigneeUserId(),
+                                callExternalService(item.getType().toString(), item.getInitiatorUserId(),
                                         item.getReferenceId()))
                         .createdAt(item.getCreatedAt())
                         .updatedAt(item.getUpdatedAt())
