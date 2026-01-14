@@ -3,11 +3,7 @@ package com.hrms.hrms_utility.service;
 import com.hrms.hrms_utility.entity.ActionItem;
 import com.hrms.hrms_utility.repository.ActionItemRepo;
 import com.hrms.hrms_utility.request.ActionItemRequest;
-import com.hrms.hrms_utility.response.ActionItemResponse;
-import com.hrms.hrms_utility.response.BaseDto;
-import com.hrms.hrms_utility.response.EmployeeDto;
-import com.hrms.hrms_utility.response.LeaveDto;
-import com.hrms.hrms_utility.response.TimesheetDto;
+import com.hrms.hrms_utility.response.*;
 import com.hrms.hrms_utility.utility.ActionItemHelper;
 import com.hrms.hrms_utility.utility.TenantContext;
 import jakarta.persistence.EntityNotFoundException;
@@ -181,11 +177,11 @@ public class ActionItemService {
             url += "timesheets/" + referenceId;
             responseType = TimesheetDto.class;
         }
-        // Uncomment these if needed
-        // else if ("WFH".equals(type)) {
-        //     url += "wfh/" + referenceId;
-        //     responseType = WfhDto.class;
-        // } else if ("EXPENSE".equals(type)) {
+         else if ("WFH".equals(type)) {
+            url += "/wfh/" + referenceId;
+            responseType = WorkFromHomeDto.class;
+         }
+         //else if ("EXPENSE".equals(type)) {
         //     url += "expense/" + referenceId;
         //     responseType = ExpenseDto.class;
         // } else if ("ASSET_REQUEST".equals(type)) {
