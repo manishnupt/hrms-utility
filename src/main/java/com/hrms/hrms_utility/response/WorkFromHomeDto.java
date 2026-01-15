@@ -7,8 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDate;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class WorkFromHomeDto extends BaseDto  {
+public class WorkFromHomeDto {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate startDate;

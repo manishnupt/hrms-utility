@@ -9,8 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class TimesheetDto extends BaseDto {
+public class TimesheetDto  {
  private Long timesheetId;
  
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

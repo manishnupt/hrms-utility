@@ -18,7 +18,9 @@ public class ActionItemResponse {
     private String status;
     private EmployeeDto initiatorUser;
     private EmployeeDto assigneeUser;
-    private BaseDto reference;
+    private LeaveDto leave;
+    private TimesheetDto timesheet;
+    private WorkFromHomeDto wfh;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

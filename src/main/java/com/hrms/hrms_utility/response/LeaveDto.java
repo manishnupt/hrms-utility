@@ -6,8 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class LeaveDto extends BaseDto {
+public class LeaveDto  {
 
     private Long leaveId;
     private String leaveType;

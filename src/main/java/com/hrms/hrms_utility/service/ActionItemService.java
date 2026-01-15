@@ -1,5 +1,6 @@
 package com.hrms.hrms_utility.service;
 
+import com.hrms.hrms_utility.request.ExternalServiceResponse;
 import com.hrms.hrms_utility.entity.ActionItem;
 import com.hrms.hrms_utility.repository.ActionItemRepo;
 import com.hrms.hrms_utility.request.ActionItemRequest;
@@ -165,71 +166,104 @@ public class ActionItemService {
         return response.getBody();
     }
 
-    public BaseDto callExternalService(String type, String userId, Long referenceId) {
-        log.info("calling external service for type :{}",type);
-        String url = employeeServiceUrl + "/employees/" + userId + "/";
-        Class<? extends BaseDto> responseType;
+    public ExternalServiceResponse callExternalService(
+            String type,
+            String userId,
+            Long referenceId) {
 
-        if ("LEAVE".equals(type)) {
-            url += "leave-tracker/" + referenceId;
-            responseType = LeaveDto.class;
-        } else if ("TIMESHEET".equals(type)) {
-            url += "timesheets/" + referenceId;
-            responseType = TimesheetDto.class;
-        }
-         else if ("WFH".equals(type)) {
-             log.info("calling WFH service for referenceId :{}",referenceId);
-            url += "/wfh/" + referenceId;
-            log.info("constructed url :{}",url);
-            responseType = WorkFromHomeDto.class;
-         }
-         //else if ("EXPENSE".equals(type)) {
-        //     url += "expense/" + referenceId;
-        //     responseType = ExpenseDto.class;
-        // } else if ("ASSET_REQUEST".equals(type)) {
-        //     url += "asset_request/" + referenceId;
-        //     responseType = AssetRequestDto.class;
-        // }
-        else {
-            responseType = BaseDto.class;
-        }
+        log.info("calling external service for type : {}", type);
 
+        String baseUrl = employeeServiceUrl + "/employees/" + userId;
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        ExternalServiceResponse responseWrapper = new ExternalServiceResponse();
+        responseWrapper.setType(type);
 
-        ResponseEntity<? extends BaseDto> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                responseType
-        );
+        switch (type) {
+            case "LEAVE" -> {
+                String url = baseUrl + "/leave-tracker/" + referenceId;
+                LeaveDto dto = restTemplate.exchange(
+                        url, HttpMethod.GET, entity, LeaveDto.class
+                ).getBody();
+                responseWrapper.setLeave(dto);
+            }
 
-        return response.getBody();
+            case "TIMESHEET" -> {
+                String url = baseUrl + "/timesheets/" + referenceId;
+                TimesheetDto dto = restTemplate.exchange(
+                        url, HttpMethod.GET, entity, TimesheetDto.class
+                ).getBody();
+                responseWrapper.setTimesheet(dto);
+            }
+
+            case "WFH" -> {
+                String url = baseUrl + "/wfh/" + referenceId;
+                WorkFromHomeDto dto = restTemplate.exchange(
+                        url, HttpMethod.GET, entity, WorkFromHomeDto.class
+                ).getBody();
+                responseWrapper.setWfh(dto);
+            }
+
+            default -> throw new IllegalArgumentException("Unsupported type: " + type);
+        }
+
+        return responseWrapper;
     }
+
 
 
     private List<ActionItemResponse> mapToResponse(List<ActionItem> actionItems) {
+
         return actionItems.stream()
-                .map(item -> ActionItemResponse.builder()
-                        .id(item.getId())
-                        .title(item.getTitle())
-                        .description(item.getDescription())
-                        .remarks(item.getRemarks())
-                        .seen(item.isSeen())
-                        .type(item.getType().toString())
-                        .status(item.getStatus().toString())
-                        .initiatorUser(
-                                callExternalService("employee", item.getInitiatorUserId()))
-                        .assigneeUser(
-                                callExternalService("employee", item.getAssigneeUserId()))
-                        .reference(
-                                callExternalService(item.getType().toString(), item.getInitiatorUserId(),
-                                        item.getReferenceId()))
-                        .createdAt(item.getCreatedAt())
-                        .updatedAt(item.getUpdatedAt())
-                        .build())
+                .map(item -> {
+                    ActionItemResponse.ActionItemResponseBuilder builder =
+                            ActionItemResponse.builder()
+                                    .id(item.getId())
+                                    .title(item.getTitle())
+                                    .description(item.getDescription())
+                                    .remarks(item.getRemarks())
+                                    .seen(item.isSeen())
+                                    .type(item.getType().toString())
+                                    .status(item.getStatus().toString())
+                                    .initiatorUser(
+                                            callExternalService(
+                                                    "employee",
+                                                    item.getInitiatorUserId()))
+                                    .assigneeUser(
+                                            callExternalService(
+                                                    "employee",
+                                                    item.getAssigneeUserId()))
+                                    .createdAt(item.getCreatedAt())
+                                    .updatedAt(item.getUpdatedAt());
+
+                    assignReference(builder, item);
+                    return builder.build();
+                })
                 .toList();
     }
+
+
+    private void assignReference(
+            ActionItemResponse.ActionItemResponseBuilder builder,
+            ActionItem item) {
+
+        // Single external call
+        ExternalServiceResponse response =
+                callExternalService(
+                        item.getType().toString(),
+                        item.getInitiatorUserId(),
+                        item.getReferenceId()
+                );
+
+        switch (item.getType()) {
+            case LEAVE -> builder.leave(response.getLeave());
+            case TIMESHEET -> builder.timesheet(response.getTimesheet());
+            case WFH -> builder.wfh(response.getWfh());
+            default -> log.warn("Unsupported reference type: {}", item.getType());
+        }
+    }
+
+
 }
