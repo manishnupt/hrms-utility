@@ -36,12 +36,14 @@ public class ActionItemService {
     private String employeeServiceUrl;
 
     public ActionItem createActionItem(ActionItemRequest req) {
+        log.info("Creating action item for assignee: {}", req.getAssigneeUserId());
         ActionItem actionItem= ActionItemHelper.toEntity(req);
         return actionItemRepo.save(actionItem);
     }
 
     public List<ActionItemResponse> getAssignedItems(String userId, ActionItem.ActionStatus status) {
 
+        log.info("Getting assigned items for userId: {}, status: {}", userId, status);
         List<ActionItem> actionItem;
         if (status != null)
             actionItem = actionItemRepo.findByAssigneeUserIdAndStatus(userId, status);
@@ -53,6 +55,7 @@ public class ActionItemService {
     }
 
     public List<ActionItemResponse> getInitiatedItems(String userId, ActionItem.ActionStatus status) {
+        log.info("Getting initiated items for userId: {}, status: {}", userId, status);
         List<ActionItem> actionItem;
         if (status != null)
             actionItem = actionItemRepo.findByInitiatorUserIdAndStatus(userId, status);
@@ -63,6 +66,7 @@ public class ActionItemService {
     }
 
     public ActionItem getActionItemById(Long id) {
+        log.info("Getting action item by id: {}", id);
         Optional<ActionItem> byId = actionItemRepo.findById(id);
         if(byId.isPresent()){
             return byId.get();
@@ -73,6 +77,7 @@ public class ActionItemService {
     }
 
     public ActionItem updateStatus(Long id, ActionItem.ActionStatus status, String remarks) {
+        log.info("Updating status of action item id: {} to {}", id, status);
         ActionItem item = actionItemRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ActionItem not found with id " + id));
 
@@ -108,6 +113,7 @@ public class ActionItemService {
     }
 
     public void markAsSeen(Long id) {
+        log.info("Marking action item id: {} as seen", id);
         ActionItem item = actionItemRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ActionItem not found with id " + id));
         item.setSeen(true); // assuming you have a 'seen' boolean field
@@ -116,6 +122,7 @@ public class ActionItemService {
     }
 
     public void deleteActionItem(Long id) {
+        log.info("Deleting action item with id: {}", id);
         if (!actionItemRepo.existsById(id)) {
             throw new EntityNotFoundException("ActionItem not found with id " + id);
         }
@@ -124,10 +131,12 @@ public class ActionItemService {
 
 
     public List<ActionItem> getByReferenceId(Long referenceId) {
+        log.info("Getting action items by referenceId: {}", referenceId);
         return actionItemRepo.findByReferenceId(referenceId);
     }
 
     public Long getPendingCount(String assigneeUserId) {
+        log.info("Getting pending count for assigneeUserId: {}", assigneeUserId);
         return actionItemRepo.countByAssigneeUserIdAndStatus(
                 assigneeUserId,
                 ActionItem.ActionStatus.PENDING
@@ -135,14 +144,17 @@ public class ActionItemService {
     }
 
     public List<ActionItem> getByReferenceIdAndType(Long referenceId, ActionItem.ActionType type) {
+        log.info("Getting action items by referenceId: {} and type: {}", referenceId, type);
         return actionItemRepo.findByReferenceIdAndType(referenceId, type);
     }
 
     public List<ActionItem> getByReferenceIdAndStatus(Long referenceId, ActionItem.ActionStatus status) {
+        log.info("Getting action items by referenceId: {} and status: {}", referenceId, status);
         return actionItemRepo.findByReferenceIdAndStatus(referenceId, status);
     }
 
     public EmployeeDto callExternalService(String type, String userId) {
+        log.info("Calling external service for type: {}, userId: {}", type, userId);
         String url = employeeServiceUrl + "/";
         if ("employee".equals(type)) {
             url += "employee/";
