@@ -99,7 +99,7 @@ public class ActionItemService {
 
                 url = baseUrl
                         + "/leave-balance/"
-                        + item.getAssigneeUserId()
+                        + item.getInitiatorUserId()
                         + "/deduct/"
                         + item.getReferenceId();
 
@@ -107,7 +107,7 @@ public class ActionItemService {
 
                 url = baseUrl
                         + "/wfh-balance/"
-                        + item.getAssigneeUserId()
+                        + item.getInitiatorUserId()
                         + "/deduct/"
                         + item.getReferenceId();
 
