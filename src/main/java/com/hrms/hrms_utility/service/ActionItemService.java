@@ -165,6 +165,58 @@ public class ActionItemService {
                 );
             }
         }
+        if (ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
+
+            String url = employeeServiceUrl
+                    + "/employees/"
+                    + item.getInitiatorUserId()
+                    + "/timesheets/"
+                    + item.getReferenceId()
+                    + "/approve";
+
+            log.info("Calling timesheet approval API: {}", url);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            try {
+
+                ResponseEntity<Void> response =
+                        restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
+
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    log.error(
+                            "Failed to change status timesheet for action item id: {}, status: {}",
+                            id,
+                            response.getStatusCode()
+                    );
+
+                    throw new RuntimeException(
+                            "Timesheet status change failed with status "
+                                    + response.getStatusCode()
+                    );
+                }
+
+                log.info(
+                        "Timesheet approval successful for action item id: {}",
+                        id
+                );
+
+            } catch (RestClientException e) {
+
+                log.error(
+                        "Error while approving timesheet for action item id: {}",
+                        id,
+                        e
+                );
+
+                throw new RuntimeException(
+                        "Unable to approve timesheet", e
+                );
+            }
+        }
 
         item.setStatus(status);
         item.setRemarks(remarks);
