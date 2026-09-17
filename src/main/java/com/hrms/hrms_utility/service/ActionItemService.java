@@ -102,6 +102,7 @@ public class ActionItemService {
                         + item.getInitiatorUserId()
                         + "/deduct/"
                         + item.getReferenceId();
+                log.info("Calling balance deduction API for leave: {}", url);
 
             } else if (ActionItem.ActionType.WFH.equals(item.getType())) {
 
@@ -110,6 +111,7 @@ public class ActionItemService {
                         + item.getInitiatorUserId()
                         + "/deduct/"
                         + item.getReferenceId();
+                log.info("Calling balance deduction API for WFH: {}", url);
 
             } else {
                 throw new IllegalArgumentException(
