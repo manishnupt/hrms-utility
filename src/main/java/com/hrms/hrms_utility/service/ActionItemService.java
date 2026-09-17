@@ -91,12 +91,14 @@ public class ActionItemService {
         ResponseEntity<?> response = null;
         if (item.getType().equals(ActionItem.ActionType.LEAVE)) {
             url+="/leave-balance/";
+            log.info("constructed url for leave balance deduction: {}", url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId());
             response = restTemplate.postForEntity(
                     url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
                     entity,
                     String.class);
         } else if (item.getType().equals(ActionItem.ActionType.WFH)) {
             url+="/wfh-balance/";
+            log.info("constructed url for wfh balance deduction: {}", url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId());
             response = restTemplate.postForEntity(
                     url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
                     entity,
