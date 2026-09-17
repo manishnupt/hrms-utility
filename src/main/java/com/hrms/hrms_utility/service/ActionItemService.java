@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -76,41 +77,97 @@ public class ActionItemService {
         }
     }
 
-    public ActionItem updateStatus(Long id, ActionItem.ActionStatus status, String remarks) {
+    public ActionItem updateStatus(
+            Long id,
+            ActionItem.ActionStatus status,
+            String remarks) {
+
         log.info("Updating status of action item id: {} to {}", id, status);
+
         ActionItem item = actionItemRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("ActionItem not found with id " + id));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "ActionItem not found with id " + id));
 
-        String url = employeeServiceUrl + "/employee";
-        // Set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
+        // Only deduct balance when approving
+        if (ActionItem.ActionStatus.APPROVED.equals(status)) {
 
-        // Create the request entity
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<?> response = null;
-        if (item.getType().equals(ActionItem.ActionType.LEAVE)) {
-            url+="/leave-balance/";
-            log.info("constructed url for leave balance deduction: {}", url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId());
-            response = restTemplate.postForEntity(
-                    url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
-                    entity,
-                    String.class);
-        } else if (item.getType().equals(ActionItem.ActionType.WFH)) {
-            url+="/wfh-balance/";
-            log.info("constructed url for wfh balance deduction: {}", url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId());
-            response = restTemplate.postForEntity(
-                    url + item.getAssigneeUserId() + "/deduct/" + item.getReferenceId(),
-                    entity,
-                    String.class);
+            String baseUrl = employeeServiceUrl + "/employee";
+            String url = null;
 
+            if (ActionItem.ActionType.LEAVE.equals(item.getType())) {
+
+                url = baseUrl
+                        + "/leave-balance/"
+                        + item.getAssigneeUserId()
+                        + "/deduct/"
+                        + item.getReferenceId();
+
+            } else if (ActionItem.ActionType.WFH.equals(item.getType())) {
+
+                url = baseUrl
+                        + "/wfh-balance/"
+                        + item.getAssigneeUserId()
+                        + "/deduct/"
+                        + item.getReferenceId();
+
+            } else {
+                throw new IllegalArgumentException(
+                        "Unsupported ActionItem type: " + item.getType());
+            }
+
+            log.info("Calling balance deduction API: {}", url);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            try {
+
+                ResponseEntity<String> response =
+                        restTemplate.postForEntity(
+                                url,
+                                entity,
+                                String.class
+                        );
+
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    log.error(
+                            "Failed to deduct balance for action item id: {}, status: {}",
+                            id,
+                            response.getStatusCode()
+                    );
+
+                    throw new RuntimeException(
+                            "Balance deduction failed with status "
+                                    + response.getStatusCode()
+                    );
+                }
+
+                log.info(
+                        "Balance deduction successful for action item id: {}",
+                        id
+                );
+
+            } catch (RestClientException e) {
+
+                log.error(
+                        "Error while deducting balance for action item id: {}",
+                        id,
+                        e
+                );
+
+                throw new RuntimeException(
+                        "Unable to deduct balance", e
+                );
+            }
         }
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            log.error("Failed to deduct item with id: {}", id);
-        }
+
         item.setStatus(status);
         item.setRemarks(remarks);
         item.setUpdatedAt(LocalDateTime.now());
+
         return actionItemRepo.save(item);
     }
 
