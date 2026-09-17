@@ -90,7 +90,7 @@ public class ActionItemService {
                                 "ActionItem not found with id " + id));
 
         // Only deduct balance when approving
-        if (ActionItem.ActionStatus.APPROVED.equals(status)) {
+        if (ActionItem.ActionStatus.APPROVED.equals(status) && (ActionItem.ActionType.LEAVE.equals(item.getType()) || ActionItem.ActionType.WFH.equals(item.getType()))) {
 
             String baseUrl = employeeServiceUrl + "/employee";
             String url = null;
@@ -113,7 +113,7 @@ public class ActionItemService {
                         + item.getReferenceId();
                 log.info("Calling balance deduction API for WFH: {}", url);
 
-            } else {
+            }  else {
                 throw new IllegalArgumentException(
                         "Unsupported ActionItem type: " + item.getType());
             }
