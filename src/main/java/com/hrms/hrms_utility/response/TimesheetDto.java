@@ -18,5 +18,5 @@ public class TimesheetDto  {
     private LocalTime clockIn;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime clockOut;
-    private double totalHours;
+    private String totalHours;
 }
