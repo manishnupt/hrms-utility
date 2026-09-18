@@ -22,10 +22,10 @@ public class ActionItemController {
 
 
     @PostMapping
-    public ResponseEntity<ActionItem> createActionItem(@RequestBody ActionItemRequest req) {
+    public ResponseEntity<Long> createActionItem(@RequestBody ActionItemRequest req) {
         log.info("Creating action item: {}", req);
         ActionItem actionItem = actionItemService.createActionItem(req);
-        return ResponseEntity.ok(actionItem);
+        return ResponseEntity.ok(actionItem.getId());
     }
 
     @GetMapping("/assignee/{userId}")
