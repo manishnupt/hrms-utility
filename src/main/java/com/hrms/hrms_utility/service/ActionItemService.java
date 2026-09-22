@@ -171,8 +171,8 @@ public class ActionItemService {
                     + "/employees/"
                     + item.getInitiatorUserId()
                     + "/timesheets/"
-                    + item.getReferenceId()
-                    + "/approve";
+                    + "/approve/"
+                    + item.getReferenceId();
 
             log.info("Calling timesheet approval API: {}", url);
 
