@@ -89,133 +89,10 @@ public class ActionItemService {
                         new EntityNotFoundException(
                                 "ActionItem not found with id " + id));
 
-        // Only deduct balance when approving
-        if (ActionItem.ActionStatus.APPROVED.equals(status) && (ActionItem.ActionType.LEAVE.equals(item.getType()) || ActionItem.ActionType.WFH.equals(item.getType()))) {
-
-            String baseUrl = employeeServiceUrl + "/employee";
-            String url = null;
-
-            if (ActionItem.ActionType.LEAVE.equals(item.getType())) {
-
-                url = baseUrl
-                        + "/leave-balance/"
-                        + item.getInitiatorUserId()
-                        + "/deduct/"
-                        + item.getReferenceId();
-                log.info("Calling balance deduction API for leave: {}", url);
-
-            } else if (ActionItem.ActionType.WFH.equals(item.getType())) {
-
-                url = baseUrl
-                        + "/wfh-balance/"
-                        + item.getInitiatorUserId()
-                        + "/deduct/"
-                        + item.getReferenceId();
-                log.info("Calling balance deduction API for WFH: {}", url);
-
-            }  else {
-                throw new IllegalArgumentException(
-                        "Unsupported ActionItem type: " + item.getType());
-            }
-
-            log.info("Calling balance deduction API: {}", url);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
-
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            try {
-
-                ResponseEntity<String> response =
-                        restTemplate.postForEntity(
-                                url,
-                                entity,
-                                String.class
-                        );
-
-                if (!response.getStatusCode().is2xxSuccessful()) {
-                    log.error(
-                            "Failed to deduct balance for action item id: {}, status: {}",
-                            id,
-                            response.getStatusCode()
-                    );
-
-                    throw new RuntimeException(
-                            "Balance deduction failed with status "
-                                    + response.getStatusCode()
-                    );
-                }
-
-                log.info(
-                        "Balance deduction successful for action item id: {}",
-                        id
-                );
-
-            } catch (RestClientException e) {
-
-                log.error(
-                        "Error while deducting balance for action item id: {}",
-                        id,
-                        e
-                );
-
-                throw new RuntimeException(
-                        "Unable to deduct balance", e
-                );
-            }
-        }
-        if (ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
-
-            String url = employeeServiceUrl
-                    + "/employees/"
-                    + item.getInitiatorUserId()
-                    + "/timesheets/"
-                    + "/approve/"
-                    + item.getReferenceId();
-
-            log.info("Calling timesheet approval API: {}", url);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
-
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            try {
-
-                ResponseEntity<Void> response =
-                        restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
-
-                if (!response.getStatusCode().is2xxSuccessful()) {
-                    log.error(
-                            "Failed to change status timesheet for action item id: {}, status: {}",
-                            id,
-                            response.getStatusCode()
-                    );
-
-                    throw new RuntimeException(
-                            "Timesheet status change failed with status "
-                                    + response.getStatusCode()
-                    );
-                }
-
-                log.info(
-                        "Timesheet approval successful for action item id: {}",
-                        id
-                );
-
-            } catch (RestClientException e) {
-
-                log.error(
-                        "Error while approving timesheet for action item id: {}",
-                        id,
-                        e
-                );
-
-                throw new RuntimeException(
-                        "Unable to approve timesheet", e
-                );
-            }
+        if (ActionItem.ActionType.LEAVE.equals(item.getType())
+                || ActionItem.ActionType.WFH.equals(item.getType())
+                || ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
+            changeExternalStatus(item, status);
         }
 
         item.setStatus(status);
@@ -223,6 +100,61 @@ public class ActionItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         return actionItemRepo.save(item);
+    }
+
+    private void changeExternalStatus(ActionItem item, ActionItem.ActionStatus status) {
+        String url;
+        if (ActionItem.ActionType.LEAVE.equals(item.getType())) {
+            url = employeeServiceUrl + "/employee/" + item.getInitiatorUserId() + "/leave-tracker/" + item.getReferenceId() + "/status";
+        } else if (ActionItem.ActionType.WFH.equals(item.getType())) {
+            url = employeeServiceUrl + "/employee/" + item.getInitiatorUserId() + "/wfh-tracker/" + item.getReferenceId() + "/status";
+        } else if (ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
+            url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/timesheets/" + item.getReferenceId() + "/status";
+        } else {
+            log.warn("No external status update needed for action item type: {}", item.getType());
+            return;
+        }
+
+        url = url + "?status=" + status;
+
+        log.info("calling api to change the status {}", url);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Tenant-Id", TenantContext.getCurrentTenant());
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response =
+                    restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error(
+                        "Failed to change status for action item id: {}, status: {}",
+                        item.getId(),
+                        response.getStatusCode()
+                );
+                throw new RuntimeException(
+                        "Status change failed with status "
+                                + response.getStatusCode()
+                );
+            }
+
+            log.info(
+                    "Status change successful for action item id: {}",
+                    item.getId()
+            );
+
+        } catch (RestClientException e) {
+            log.error(
+                    "Error while changing status for action item id: {}",
+                    item.getId(),
+                    e
+            );
+            throw new RuntimeException(
+                    "Unable to change status", e
+            );
+        }
     }
 
     public void markAsSeen(Long id) {
