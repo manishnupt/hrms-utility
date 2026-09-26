@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.hrms.hrms_utility.utility.JwtUtil;
 
 @Service
 @Log4j2
@@ -80,7 +81,7 @@ public class ActionItemService {
     public ActionItem updateStatus(
             Long id,
             ActionItem.ActionStatus status,
-            String remarks) {
+            String remarks, String token) {
 
         log.info("Updating status of action item id: {} to {}", id, status);
 
@@ -88,6 +89,13 @@ public class ActionItemService {
                 .orElseThrow(() ->
                         new EntityNotFoundException(
                                 "ActionItem not found with id " + id));
+
+        String extractedUserId=JwtUtil.extractUserId(token);
+
+        if(!extractedUserId.equals(item.getAssigneeUserId())) {
+            log.warn("Unauthorized status update attempt by userId: {} for action item id: {}", extractedUserId, id);
+            throw new SecurityException("Unauthorized access");
+        }
 
         if (ActionItem.ActionType.LEAVE.equals(item.getType())
                 || ActionItem.ActionType.WFH.equals(item.getType())

@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.hrms.hrms_utility.utility.JwtUtil;
 
 import java.util.List;
 
@@ -31,8 +32,14 @@ public class ActionItemController {
     @GetMapping("/assignee/{userId}")
     public ResponseEntity<List<ActionItemResponse>> getAssignedItems(
             @PathVariable String userId,
-            @RequestParam(required = false) ActionItem.ActionStatus status
+            @RequestParam(required = false) ActionItem.ActionStatus status,
+            @RequestParam(required = true) String token
     ) {
+        String extractedUserID =JwtUtil.extractUserId(token);
+        if(!extractedUserID.equals(userId)) {
+            log.warn("Unauthorized access attempt by userId: {} for userId: {}", extractedUserID, userId);
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
         log.info("Fetching assigned action items for userId: {}, status: {}", userId, status);
         return ResponseEntity.ok(actionItemService.getAssignedItems(userId, status));
     }
@@ -41,8 +48,14 @@ public class ActionItemController {
     @GetMapping("/initiator/{userId}")
     public ResponseEntity<List<ActionItemResponse>> getInitiatedItems(
             @PathVariable String userId,
-            @RequestParam(required = false) ActionItem.ActionStatus status
+            @RequestParam(required = false) ActionItem.ActionStatus status,
+            @RequestParam(required = true) String token
     ) {
+        String extractedUserID =JwtUtil.extractUserId(token);
+        if(!extractedUserID.equals(userId)) {
+            log.warn("Unauthorized access attempt by userId: {} for userId: {}", extractedUserID, userId);
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
         log.info("Fetching initiated action items for userId: {}, status: {}", userId, status);
         return ResponseEntity.ok(actionItemService.getInitiatedItems(userId, status));
     }
@@ -59,10 +72,11 @@ public class ActionItemController {
     public ResponseEntity<ActionItem> updateActionItemStatus(
             @PathVariable Long id,
             @RequestParam ActionItem.ActionStatus status,
-            @RequestParam(required = false) String remarks
+            @RequestParam(required = false) String remarks,
+            @RequestParam(required = true) String token
     ) {
         log.info("Updating action item id: {} to status: {}", id, status);
-        return ResponseEntity.ok(actionItemService.updateStatus(id, status, remarks));
+        return ResponseEntity.ok(actionItemService.updateStatus(id, status, remarks,token));
     }
 
     @PutMapping("/{id}/mark-seen")
@@ -73,7 +87,7 @@ public class ActionItemController {
     }
 
     // 7. Delete action item (optional/admin)
-    @DeleteMapping("/{id}")
+    //@DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteActionItem(@PathVariable Long id) {
         log.info("Deleting action item with id: {}", id);
         actionItemService.deleteActionItem(id);
