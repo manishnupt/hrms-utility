@@ -113,9 +113,9 @@ public class ActionItemService {
     private void changeExternalStatus(ActionItem item, ActionItem.ActionStatus status) {
         String url;
         if (ActionItem.ActionType.LEAVE.equals(item.getType())) {
-            url = employeeServiceUrl + "/employee/" + item.getInitiatorUserId() + "/leave-tracker/" + item.getReferenceId() + "/status";
+            url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/leave-tracker/" + item.getReferenceId() + "/status";
         } else if (ActionItem.ActionType.WFH.equals(item.getType())) {
-            url = employeeServiceUrl + "/employee/" + item.getInitiatorUserId() + "/wfh-tracker/" + item.getReferenceId() + "/status";
+            url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/wfh-tracker/" + item.getReferenceId() + "/status";
         } else if (ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
             url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/timesheets/" + item.getReferenceId() + "/status";
         } else {
