@@ -33,9 +33,9 @@ public class ActionItemController {
     public ResponseEntity<List<ActionItemResponse>> getAssignedItems(
             @PathVariable String userId,
             @RequestParam(required = false) ActionItem.ActionStatus status,
-            @RequestParam(required = true) String token
+            @RequestHeader(required = true) String authorization
     ) {
-        String extractedUserID =JwtUtil.extractUserId(token);
+        String extractedUserID =JwtUtil.extractUserId(authorization);
         if(!extractedUserID.equals(userId)) {
             log.warn("Unauthorized access attempt by userId: {} for userId: {}", extractedUserID, userId);
             return ResponseEntity.status(403).build(); // Forbidden
@@ -49,9 +49,9 @@ public class ActionItemController {
     public ResponseEntity<List<ActionItemResponse>> getInitiatedItems(
             @PathVariable String userId,
             @RequestParam(required = false) ActionItem.ActionStatus status,
-            @RequestParam(required = true) String token
+            @RequestHeader(required = true) String authorization
     ) {
-        String extractedUserID =JwtUtil.extractUserId(token);
+        String extractedUserID =JwtUtil.extractUserId(authorization);
         if(!extractedUserID.equals(userId)) {
             log.warn("Unauthorized access attempt by userId: {} for userId: {}", extractedUserID, userId);
             return ResponseEntity.status(403).build(); // Forbidden
@@ -73,10 +73,10 @@ public class ActionItemController {
             @PathVariable Long id,
             @RequestParam ActionItem.ActionStatus status,
             @RequestParam(required = false) String remarks,
-            @RequestParam(required = true) String token
+            @RequestHeader(required = true) String authorization
     ) {
         log.info("Updating action item id: {} to status: {}", id, status);
-        return ResponseEntity.ok(actionItemService.updateStatus(id, status, remarks,token));
+        return ResponseEntity.ok(actionItemService.updateStatus(id, status, remarks,authorization));
     }
 
     @PutMapping("/{id}/mark-seen")
