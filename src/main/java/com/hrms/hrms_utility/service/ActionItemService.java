@@ -14,10 +14,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -174,12 +176,26 @@ public class ActionItemService {
         actionItemRepo.save(item);
     }
 
-    public void deleteActionItem(Long id) {
+    public void deleteActionItem(Long id, String token) {
         log.info("Deleting action item with id: {}", id);
-        if (!actionItemRepo.existsById(id)) {
-            throw new EntityNotFoundException("ActionItem not found with id " + id);
+        ActionItem item = actionItemRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "ActionItem not found with id " + id));
+
+        String extractedUserId = JwtUtil.extractUserId(token);
+
+        if (!extractedUserId.equals(item.getInitiatorUserId())) {
+            log.warn("Unauthorized delete attempt by userId: {} for action item id: {}", extractedUserId, id);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access");
         }
-        actionItemRepo.deleteById(id);
+
+        if (!ActionItem.ActionStatus.PENDING.equals(item.getStatus())) {
+            log.warn("Cannot delete action item id: {} with status: {}", id, item.getStatus());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Only pending action items can be deleted");
+        }
+
+        actionItemRepo.delete(item);
     }
 
 

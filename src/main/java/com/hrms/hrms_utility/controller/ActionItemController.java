@@ -86,11 +86,14 @@ public class ActionItemController {
         return ResponseEntity.ok().build();
     }
 
-    // 7. Delete action item (optional/admin)
-    //@DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteActionItem(@PathVariable Long id) {
+    // 7. Delete a pending action item
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteActionItem(
+            @PathVariable Long id,
+            @RequestHeader(required = true) String authorization
+    ) {
         log.info("Deleting action item with id: {}", id);
-        actionItemService.deleteActionItem(id);
+        actionItemService.deleteActionItem(id, authorization);
         return ResponseEntity.noContent().build();
     }
 
