@@ -287,6 +287,14 @@ public class ActionItemService {
                 responseWrapper.setWfh(dto);
             }
 
+            case "REGULARIZATION" -> {
+                String url = baseUrl + "/regularizations/" + referenceId;
+                RegularizationDto dto = restTemplate.exchange(
+                        url, HttpMethod.GET, entity, RegularizationDto.class
+                ).getBody();
+                responseWrapper.setRegularization(dto);
+            }
+
             default -> throw new IllegalArgumentException("Unsupported type: " + type);
         }
 
@@ -342,6 +350,7 @@ public class ActionItemService {
             case LEAVE -> builder.leave(response.getLeave());
             case TIMESHEET -> builder.timesheet(response.getTimesheet());
             case WFH -> builder.wfh(response.getWfh());
+            case REGULARIZATION -> builder.regularization(response.getRegularization());
             default -> log.warn("Unsupported reference type: {}", item.getType());
         }
     }

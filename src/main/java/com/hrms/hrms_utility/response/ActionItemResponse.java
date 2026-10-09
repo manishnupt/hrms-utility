@@ -21,11 +21,12 @@ public class ActionItemResponse {
     private LeaveDto leave;
     private TimesheetDto timesheet;
     private WorkFromHomeDto wfh;
+    private RegularizationDto regularization;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public enum ActionType {
-        TIMESHEET, LEAVE, WFH, EXPENSE, ASSET_REQUEST
+        TIMESHEET, LEAVE, WFH, EXPENSE, ASSET_REQUEST, REGULARIZATION
     }
 
     public enum ActionStatus {
