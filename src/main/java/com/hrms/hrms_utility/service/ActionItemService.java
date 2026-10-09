@@ -101,7 +101,8 @@ public class ActionItemService {
 
         if (ActionItem.ActionType.LEAVE.equals(item.getType())
                 || ActionItem.ActionType.WFH.equals(item.getType())
-                || ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
+                || ActionItem.ActionType.TIMESHEET.equals(item.getType())
+                || ActionItem.ActionType.REGULARIZATION.equals(item.getType())) {
             changeExternalStatus(item, status);
         }
 
@@ -120,7 +121,11 @@ public class ActionItemService {
             url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/wfh-tracker/" + item.getReferenceId() + "/status";
         } else if (ActionItem.ActionType.TIMESHEET.equals(item.getType())) {
             url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/timesheets/" + item.getReferenceId() + "/status";
-        } else {
+        } else if (ActionItem.ActionType.REGULARIZATION.equals(item.getType())) {
+            url = employeeServiceUrl + "/employees/" + item.getInitiatorUserId() + "/regularizations/" + item.getReferenceId() + "/status";
+        }
+
+        else {
             log.warn("No external status update needed for action item type: {}", item.getType());
             return;
         }
