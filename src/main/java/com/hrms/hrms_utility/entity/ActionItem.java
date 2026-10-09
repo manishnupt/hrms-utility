@@ -56,7 +56,7 @@ public class ActionItem {
     }
 
     public enum ActionType {
-        TIMESHEET, LEAVE, WFH, EXPENSE, ASSET_REQUEST
+        TIMESHEET, LEAVE, WFH, EXPENSE, ASSET_REQUEST,REGULARIZATION
     }
 
     public enum ActionStatus {
